@@ -1,3 +1,5 @@
+const MessageService = require('./messages/messageService');
+
 const logger = require('./logger');
 
 const adminUsers = ['jake_r_g'];
@@ -11,6 +13,10 @@ const parseAdminCommands = (client, channel, command) => {
     } else {
       client.action(channel, 'Log level could not be set.');
     }
+  }
+
+  if (command.startsWith('topChat')) {
+    MessageService.topChatters('#jake_r_g');
   }
 };
 

@@ -62,3 +62,6 @@ typings/
 
 # eslint config
 .eslintrc.*
+
+# VS Code config
+.vscode/

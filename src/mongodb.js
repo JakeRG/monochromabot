@@ -14,6 +14,7 @@ try {
   mongoDB = mongoose.createConnection(uri, {
     useNewUrlParser: true,
     useCreateIndex: true,
+    useUnifiedTopology: true,
   });
 } catch (e) {
   logger.fatal(e);
