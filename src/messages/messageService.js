@@ -22,7 +22,7 @@ const topChatters = async (channel, limit = 10) => {
       { $match: { channel } },
       { $group: { _id: '$user', count: { $sum: 1 } } },
     ])
-      .sort('count')
+      .sort({ count: -1 })
       .limit(limit)
       .project({
         user: '$_id',

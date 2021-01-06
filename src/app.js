@@ -5,6 +5,8 @@ require('dotenv').config();
 const { RefreshableAuthProvider, StaticAuthProvider } = require('twitch-auth');
 const { ChatClient } = require('twitch-chat-client');
 
+const SocketIOHandler = require('./socketio/socketioHandler');
+
 const MessageService = require('./messages/messageService');
 const TokensService = require('./tokens/tokensService');
 const chatCommands = require('./chatCommands');
@@ -45,6 +47,7 @@ async function main() {
   chatClient.onMessage((channel, user, message, privMsg) => {
     MessageService.saveMessage(user, channel);
     chatCommands.handleCommands(chatClient, channel, user, message, privMsg);
+    SocketIOHandler.shareMessage(channel, user, message);
   });
 }
 
