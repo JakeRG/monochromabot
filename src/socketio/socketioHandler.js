@@ -8,7 +8,7 @@ logger.info(`Host: ${JTTB_HOST}`);
 const socket = io(JTTB_HOST);
 
 socket.on('connect', () => {
-  logger.info(`Succesfully connected to JTTB: ${socket.connected}`); // true?
+  logger.info(`Succesfully connected to JTTB: ${socket.connected}`);
 });
 
 const shareMessage = (channel, user, message) => {
