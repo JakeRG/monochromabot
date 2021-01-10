@@ -58,15 +58,6 @@ async function main() {
   */
 
   chatClient.onMessage((channel, user, message, privMsg) => {
-    //console.log(JSON.stringify(privMsg));
-    /*
-    console.log(JSON.stringify(privMsg.channelId));
-    console.log(JSON.stringify(privMsg.userInfo.color));
-    console.log(privMsg.userInfo.badgeInfo);
-    console.log(privMsg.userInfo.badges);
-    */
-    console.log(JSON.stringify(privMsg.parseEmotes()));
-
     MessageService.saveMessage(user, channel);
     chatCommands.handleCommands(chatClient, channel, user, message, privMsg);
     SocketIOHandler.shareMessage(channel, user, message, privMsg);

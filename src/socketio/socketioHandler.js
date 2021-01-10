@@ -24,8 +24,58 @@ socket.on('connect', () => {
  * @param {PrivateMessage} privMsg PrivateMessage object containing more information
  */
 const shareMessage = (channel, user, message, privMsg) => {
-  const { color } = privMsg.userInfo;
-  socket.emit('shareMsg', channel, user, message, color);
+  // console.log(JSON.stringify(privMsg));
+  /*
+  console.log(JSON.stringify(privMsg.channelId));
+  console.log(JSON.stringify(privMsg.userInfo.color));
+  console.log(privMsg.userInfo.badgeInfo);
+  console.log(privMsg.userInfo.badges);
+  */
+  try {
+    const { userInfo } = privMsg;
+    const parsedMsgParts = privMsg.parseEmotes();
+
+    // Taking all the properties off the ChatUser object and sending them as raw data,
+    // because the receiving end might not understand how to parse the ChatUser object.
+    const {
+      badgeInfo,
+      badges,
+      color,
+      displayName,
+      isBroadcaster,
+      isFounder,
+      isMod,
+      isSubscriber,
+      isVip,
+      userId,
+      userType,
+    } = userInfo;
+
+    // Regroup all the separate properties under one object for easier handling
+    const userDetails = {
+      badgeInfo,
+      badges,
+      color,
+      displayName,
+      isBroadcaster,
+      isFounder,
+      isMod,
+      isSubscriber,
+      isVip,
+      userId,
+      userType,
+    };
+
+    socket.emit('shareMsg', channel, {
+      user,
+      message,
+      privMsg,
+      parsedMsgParts,
+      userDetails,
+    });
+  } catch (e) {
+    console.error(`Failed to share message '${message}' from user '${user}' in channel '${channel}'! Error: ${e.message}`);
+  }
 };
 
 module.exports = {
