@@ -5,6 +5,8 @@ const logger = require('./logger');
 
 const adminUsers = ['jake_r_g'];
 
+const SILENT_MODE = true;
+
 const parseAdminCommands = async (client, channel, message) => {
   // Change logging level
   if (message.startsWith('!loglevel ')) {
@@ -17,6 +19,7 @@ const parseAdminCommands = async (client, channel, message) => {
     client.action(channel, 'Log level could not be set.');
   }
 
+  // DEBUG
   // Debugging command for top chat functionality
   if (message.startsWith('!topChat')) {
     MessageService.topChatters('#jake_r_g');
@@ -123,13 +126,15 @@ const parseAdminCommands = async (client, channel, message) => {
 };
 
 const parseCommands = (client, channel, message) => {
-  if (message.toLowerCase() === ('!help')) {
-    client.action(channel, 'Yo, I\'m just a silly WIP, what do you want from me');
-    return;
-  }
-  if (message.toLowerCase() === ('!ping')) {
-    client.say(channel, 'Pong!');
-    // return; // TODO: enable once other commands parsing is moved from parseAdminCommands to here
+  if (!SILENT_MODE) {
+    if (message.toLowerCase() === ('!help')) {
+      client.action(channel, 'Yo, I\'m just a silly WIP, what do you want from me');
+      return;
+    }
+    if (message.toLowerCase() === ('!ping')) {
+      client.say(channel, 'Pong!');
+      // return; // TODO: enable once other commands parsing is moved from parseAdminCommands to here
+    }
   }
 };
 

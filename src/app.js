@@ -38,16 +38,38 @@ async function main() {
   );
 
   // Actually set up the chat client and join the channel(s)
-  const channels = ['Jake_R_G']; // TODO: make channels variable?
-  const chatClient = new ChatClient(auth, { channels });
+  const channels = ['Jake_R_G'];//, 'Kelpsey']; // TODO: make channels variable?
+  const joinedChannels = () => channels;
+  const chatClient = new ChatClient(auth, { channels: joinedChannels });
   await chatClient.connect();
 
-  logger.info(`MonochromaBot launched. Joined channels: ${channels}`);
+
+  logger.info(`MonochromaBot launched. Joined channels: ${joinedChannels()}`);
+
+  /*
+  // Example of how to dynamically join channels
+  chatClient.onRegister(async () => {
+    try {
+      const joined = await chatClient.join('Beta64');
+    } catch (e) {
+      console.log(e.message);
+    }
+  });
+  */
 
   chatClient.onMessage((channel, user, message, privMsg) => {
+    //console.log(JSON.stringify(privMsg));
+    /*
+    console.log(JSON.stringify(privMsg.channelId));
+    console.log(JSON.stringify(privMsg.userInfo.color));
+    console.log(privMsg.userInfo.badgeInfo);
+    console.log(privMsg.userInfo.badges);
+    */
+    console.log(JSON.stringify(privMsg.parseEmotes()));
+
     MessageService.saveMessage(user, channel);
     chatCommands.handleCommands(chatClient, channel, user, message, privMsg);
-    SocketIOHandler.shareMessage(channel, user, message);
+    SocketIOHandler.shareMessage(channel, user, message, privMsg);
   });
 }
 
