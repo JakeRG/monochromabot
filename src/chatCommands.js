@@ -201,14 +201,18 @@ const parseAdminCommands = async (client, channel, message) => {
     client.say(channel, 'Hello!');
   }
 
-  if (manageCustomCommands) {
+  if (await manageCustomCommands) {
     return;
   }
 
   // Only check for custom commands here while in silent mode.
   // This allows admins to keep control even when in silent mode.
   if (silentMode) {
-    runCustomCommand(client, channel, message, true, true);
+    try {
+      await runCustomCommand(client, channel, message, true, true);
+    } catch (e) {
+      logger.error(`Error in parseAdminCommands - runCustomCommand: ${e.message}`);
+    }
   }
 };
 
@@ -220,7 +224,7 @@ const parseAdminCommands = async (client, channel, message) => {
  * @param {*} isAdmin True if the user is a bot admin, or broadcaster in the channel
  * @param {*} isMod True if the user is a bot admin, or broadcaster or mod in the channel
  */
-const parseCommands = (client, channel, message, isAdmin, isMod) => {
+const parseCommands = async (client, channel, message, isAdmin, isMod) => {
   if (message.toLowerCase() === ('!help')) {
     client.action(channel, 'Yo, I\'m just a silly WIP, what do you want from me');
     return;
@@ -231,7 +235,11 @@ const parseCommands = (client, channel, message, isAdmin, isMod) => {
   }
 
   // Check custom commands
-  runCustomCommand(client, channel, message, isAdmin, isMod);
+  try {
+    await runCustomCommand(client, channel, message, isAdmin, isMod);
+  } catch (e) {
+    logger.error(`Error in parseAdminCommands - runCustomCommand: ${e.message}`);
+  }
 };
 
 /**
