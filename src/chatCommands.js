@@ -90,7 +90,7 @@ const manageCustomCommands = async (client, channel, message) => {
         }
 
         // Check if command is in the list of hardcoded commands
-        if (takenCommandNames.find(trigger)) {
+        if (takenCommandNames.includes(trigger)) {
           client.say(channel, `Command '${trigger}' can't be altered!`);
           return true;
         }
@@ -141,24 +141,19 @@ const manageCustomCommands = async (client, channel, message) => {
   // Delete commands
   if (message.startsWith('!deleteCommand ')) {
     try {
-      let output = message.substr('!deleteCommand '.length);
+      const trigger = message.substr('!deleteCommand '.length);
 
-      const triggerEnd = output.indexOf(' ');
-      if (triggerEnd > 0) {
-        const trigger = output.substr(0, triggerEnd);
-        output = output.substr((triggerEnd + 1));
-
-        // Check if command exists
-        const command = await CommandService.findCommand(channel, trigger, true, true);
-        if (!command) {
-          client.say(channel, `Command '${trigger}' does not exist!`);
-          return true;
-        }
-
-        // Delete command
-        await CommandService.deleteCommand(channel, trigger);
-        client.say(channel, `Command ${trigger} has been deleted!`);
+      // Check if command exists
+      const command = await CommandService.findCommand(channel, trigger, true, true);
+      if (!command) {
+        client.say(channel, `Command '${trigger}' does not exist!`);
+        return true;
       }
+
+      // Delete command
+      await CommandService.deleteCommand(channel, trigger);
+      client.say(channel, `Command ${trigger} has been deleted!`);
+
       return true;
     } catch (e) {
       logger.error(`Error in parseAdminCommands - deleteCommand: ${e.message}`);
@@ -201,8 +196,14 @@ const parseAdminCommands = async (client, channel, message) => {
     client.say(channel, 'Hello!');
   }
 
-  if (await manageCustomCommands(client, channel, message)) {
-    return;
+  // Manage custom commands.
+  // TODO: also let mods do this?
+  try {
+    if (await manageCustomCommands(client, channel, message)) {
+      return;
+    }
+  } catch (e) {
+    logger.error(`Error in parseAdminCommands - manageCustomCommands: ${e.message}`);
   }
 
   // Only check for custom commands here while in silent mode.
