@@ -201,7 +201,7 @@ const parseAdminCommands = async (client, channel, message) => {
     client.say(channel, 'Hello!');
   }
 
-  if (await manageCustomCommands) {
+  if (await manageCustomCommands()) {
     return;
   }
 
