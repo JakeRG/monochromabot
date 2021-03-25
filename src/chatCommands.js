@@ -25,6 +25,14 @@ const takenCommandNames = [
   '!deleteCommand',
   '!help',
   '!ping',
+  // BG Event commands
+  '!start',
+  '!end',
+  '!size',
+  '!width',
+  '!height',
+  '!dist',
+  '!speed',
 ];
 
 // Custom commands

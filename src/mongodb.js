@@ -15,6 +15,7 @@ try {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true,
+    useFindAndModify: false,
   });
 } catch (e) {
   logger.fatal(e);
