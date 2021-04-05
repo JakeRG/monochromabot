@@ -1,5 +1,5 @@
 const Tokens = require('./tokensModel');
-const logger = require('../logger');
+const logger = require('../../logger');
 
 const initTokenData = () => {
   const accessToken = process.env.ACCESS_TOKEN;

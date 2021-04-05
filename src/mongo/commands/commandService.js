@@ -1,5 +1,5 @@
 const Command = require('./commandModel');
-const logger = require('../logger');
+const logger = require('../../logger');
 
 const addCommand = async (
   channel,

@@ -90,7 +90,7 @@ const shareMessage = (channel, user, message, privMsg) => {
       userDetails,
     });
   } catch (e) {
-    console.error(`Failed to share message '${message}' from user '${user}' in channel '${channel}'! Error: ${e.message}`);
+    logger.error(`Failed to share message '${message}' from user '${user}' in channel '${channel}'! Error: ${e.message}`);
   }
 };
 
@@ -156,6 +156,20 @@ const sendBgEvent = (channel, user, message) => { // , privMsg) => { // <- comme
     const value = message.substring(7);
     event = {
       speed: value,
+    };
+  }
+
+  if (message.toLowerCase().startsWith('!empty ')) {
+    const value = message.substring(7);
+    event = {
+      empty: value,
+    };
+  }
+
+  if (message.toLowerCase().startsWith('!thin ')) {
+    const value = message.substring(6);
+    event = {
+      thin: value,
     };
   }
 

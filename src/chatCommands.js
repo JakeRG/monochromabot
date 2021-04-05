@@ -2,8 +2,9 @@
 // eslint-disable-next-line no-unused-vars
 const { PrivateMessage } = require('twitch-chat-client');
 
-const CommandService = require('./commands/commandService');
-const MessageService = require('./messages/messageService');
+const ChannelService = require('./mongo/channels/channelService');
+const CommandService = require('./mongo/commands/commandService');
+const MessageService = require('./mongo/messages/messageService');
 
 const logger = require('./logger');
 
@@ -25,6 +26,9 @@ const takenCommandNames = [
   '!deleteCommand',
   '!help',
   '!ping',
+  // Channel join / leave
+  '!join',
+  '!leave',
   // BG Event commands
   '!start',
   '!end',
@@ -33,6 +37,8 @@ const takenCommandNames = [
   '!height',
   '!dist',
   '!speed',
+  '!empty',
+  '!thin',
 ];
 
 // Custom commands
@@ -173,17 +179,55 @@ const manageCustomCommands = async (client, channel, message) => {
   return false;
 };
 
-const parseAdminCommands = async (client, channel, message) => {
-  // Change logging level
-  if (message.startsWith('!loglevel ')) {
-    const level = message.substr(message.indexOf(' ') + 1);
-    logger.debug(level);
-    if (logger.setLogLevel(level)) {
-      client.action(channel, `Log level set to ${level}.`);
-      return;
+const parseAdminCommands = async (client, channel, message, user) => {
+  // ADMIN (that's... me) ONLY STARTS HERE
+  if (adminUsers.includes(user)) {
+    // Change logging level
+    if (message.startsWith('!loglevel ')) {
+      const level = message.substr(message.indexOf(' ') + 1);
+      logger.debug(level);
+      if (logger.setLogLevel(level)) {
+        client.action(channel, `Log level set to ${level}.`);
+        return;
+      }
+      client.action(channel, 'Log level could not be set.');
     }
-    client.action(channel, 'Log level could not be set.');
+
+    // Join channel
+    if (message.startsWith('!join ')) {
+      const channelName = message.trim().substr(message.indexOf(' ') + 1);
+      logger.debug(channelName);
+      if (channelName) {
+        const result = await ChannelService.addChannel(
+          channelName,
+          user,
+          'chat command',
+        );
+        if (result) {
+          try {
+            await client.join(channelName);
+          } catch (e) {
+            logger.error(`Something went wrong while trying to join channel '${channelName}': ${e.message}`);
+          }
+        }
+      }
+    }
+
+    // Leave channel
+    if (message.startsWith('!leave ')) {
+      const channelName = message.trim().substr(message.indexOf(' ') + 1);
+      logger.debug(channelName);
+      if (channelName) {
+        await ChannelService.removeChannel(channelName);
+        try {
+          await client.part(channelName);
+        } catch (e) {
+          logger.error(`Something went wrong while trying to part (leave) channel '${channelName}': ${e.message}`);
+        }
+      }
+    }
   }
+  // ADMIN ONLY ENDS HERE
 
   // DEBUG
   // Debugging command for top chat functionality
@@ -281,7 +325,7 @@ const handleCommands = (client, channel, user, message, privMsg) => {
       isAdmin = true;
       isMod = true;
       // Run any hardcoded admin commands, and override silent mode
-      parseAdminCommands(client, channel.substr(1), message);
+      parseAdminCommands(client, channel.substr(1), message, user);
     }
     // Check if the user is a moderator in the channel
     if (chatUser.isMod) {

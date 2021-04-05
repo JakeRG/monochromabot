@@ -1,19 +1,32 @@
 require('dotenv').config();
 
 // IMPORTS
-
+const express = require('express');
 const { RefreshableAuthProvider, StaticAuthProvider } = require('twitch-auth');
 const { ChatClient } = require('twitch-chat-client');
 
 const SocketIOHandler = require('./socketio/socketioHandler');
 
-const MessageService = require('./messages/messageService');
-const TokensService = require('./tokens/tokensService');
+const ChannelService = require('./mongo/channels/channelService');
+const MessageService = require('./mongo/messages/messageService');
+const TokensService = require('./mongo/tokens/tokensService');
 const chatCommands = require('./chatCommands');
 const logger = require('./logger');
 
-// MAIN
+// CONSTANTS
+const PORT = process.env.PORT || 3001;
 
+// Set up Node Express so we bind the port so Heroku won't cry
+const app = express();
+app.get('/', (req, res) => {
+  res.send('\'sup.');
+});
+
+app.listen(PORT, () => {
+  logger.info(`Express listening on port ${PORT}`);
+});
+
+// MAIN
 async function main() {
   try {
     const tokenData = await TokensService.readTokens();
@@ -37,15 +50,18 @@ async function main() {
         },
       },
     );
+
+    // TODO: old, remove
     // Actually set up the chat client and join the channel(s)
     // const channels = ['Jake_R_G'];// , 'Kelpsey']; // TODO: make channels variable?
-    const channels = ['Jake_R_G', 'Kelpsey']; // TODO: make channels variable?
-    const joinedChannels = () => channels;
-    const chatClient = new ChatClient(auth, { channels: joinedChannels });
+    // const channels = ['Jake_R_G', 'Kelpsey']; // TODO: make channels variable?
+    // const joinedChannels = () => channels;
+
+    const chatClient = new ChatClient(auth, { channels: ChannelService.joinedChannels });
     await chatClient.connect();
 
-
-    logger.info(`MonochromaBot launched. Joined channels: ${joinedChannels()}`);
+    const joinedChannels = await ChannelService.joinedChannels();
+    logger.info(`MonochromaBot launched. Joined channels: ${joinedChannels}`);
 
     /*
     // Example of how to dynamically join channels

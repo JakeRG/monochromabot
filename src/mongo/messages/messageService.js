@@ -1,5 +1,5 @@
 const Message = require('./messageModel');
-const logger = require('../logger');
+const logger = require('../../logger');
 
 const saveMessage = async (user, channel) => {
   try {
@@ -31,7 +31,7 @@ const topChatters = async (channel, limit = 10) => {
       })
       .exec();
 
-    console.log(JSON.stringify(result));
+    logger.debug(JSON.stringify(result));
   } catch (e) {
     logger.error(e.message);
   }
