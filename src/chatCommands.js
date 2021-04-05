@@ -8,10 +8,10 @@ const MessageService = require('./mongo/messages/messageService');
 
 const logger = require('./logger');
 
+const globalSilentMode = process.env.SILENT_MODE || true;
+
 const adminUsers = ['jake_r_g'];
-
-let silentMode = process.env.SILENT_MODE || true;
-
+const channelsSettings = [];
 const takenCommandNames = [
   '!logLevel',
   '!topChat',
@@ -40,6 +40,24 @@ const takenCommandNames = [
   '!empty',
   '!thin',
 ];
+
+const getChannelSilentMode = (channel) => {
+  const channelSettings = channelsSettings.find((x) => x.channel === channel);
+  if (channelSettings && (channelSettings.silent === true || channelSettings.silent === false)) {
+    return channelSettings.silent;
+  }
+  return globalSilentMode;
+};
+
+const setChannelSilentMode = (channel, silent) => {
+  const channelSettings = channelsSettings.find((x) => x.channel === channel);
+  if (channelSettings) {
+    channelSettings.silent = silent;
+    channelsSettings[channelsSettings.findIndex((x) => x.channel === channel)] = channelSettings;
+  } else {
+    channelsSettings.push({ channel, silent });
+  }
+};
 
 // Custom commands
 const runCustomCommand = async (client, channel, message, isAdmin, isMod) => {
@@ -238,13 +256,13 @@ const parseAdminCommands = async (client, channel, message, user) => {
 
   // Put bot in silent mode
   if (message.startsWith('!silentBot') || message.startsWith('!silenceBot') || message.startsWith('shut up, bot')) {
-    silentMode = true;
+    setChannelSilentMode(channel, true);
     client.action(channel, 'zips mouth');
   }
 
   // Take bot out of silent mode
   if (message.startsWith('!speakBot') || message.startsWith('hey bot, talk')) {
-    silentMode = false;
+    setChannelSilentMode(channel, false);
     client.say(channel, 'Hello!');
   }
 
@@ -260,7 +278,8 @@ const parseAdminCommands = async (client, channel, message, user) => {
 
   // Only check for custom commands here while in silent mode.
   // This allows admins to keep control even when in silent mode.
-  if (silentMode) {
+  // While not in silent mode, they are run from parseCommands() instead!
+  if (getChannelSilentMode(channel)) {
     try {
       await runCustomCommand(client, channel, message, true, true);
     } catch (e) {
@@ -278,6 +297,7 @@ const parseAdminCommands = async (client, channel, message, user) => {
  * @param {*} isMod True if the user is a bot admin, or broadcaster or mod in the channel
  */
 const parseCommands = async (client, channel, message, isAdmin, isMod) => {
+  // Hardcoded commands for all users - these are run ONLY while NOT in silent mode!
   if (message.toLowerCase() === ('!help')) {
     client.action(channel, 'Yo, I\'m just a silly WIP, what do you want from me');
     return;
@@ -287,7 +307,7 @@ const parseCommands = async (client, channel, message, isAdmin, isMod) => {
     return;
   }
 
-  // Check custom commands
+  // Custom commands - these are run from parseAdminCommands while in silent mode!
   try {
     await runCustomCommand(client, channel, message, isAdmin, isMod);
   } catch (e) {
@@ -314,6 +334,8 @@ const handleCommands = (client, channel, user, message, privMsg) => {
   logger.debug(`privMsg: ${JSON.stringify(privMsg)}`);
   logger.debug(`Self: ${JSON.stringify(self)}`);
 
+  const chan = channel.substr(1);
+
   const chatUser = privMsg.userInfo;
   // TODO: implement rate limitation here?
 
@@ -325,7 +347,7 @@ const handleCommands = (client, channel, user, message, privMsg) => {
       isAdmin = true;
       isMod = true;
       // Run any hardcoded admin commands, and override silent mode
-      parseAdminCommands(client, channel.substr(1), message, user);
+      parseAdminCommands(client, chan, message, user);
     }
     // Check if the user is a moderator in the channel
     if (chatUser.isMod) {
@@ -333,8 +355,8 @@ const handleCommands = (client, channel, user, message, privMsg) => {
     }
 
     // Check any commands that are not hardcoded.
-    if (!silentMode) {
-      parseCommands(client, channel.substr(1), message, isAdmin, isMod);
+    if (!getChannelSilentMode(chan)) {
+      parseCommands(client, chan, message, isAdmin, isMod);
     }
   }
 };
