@@ -81,7 +81,7 @@ const shareMessage = (channel, user, message, privMsg) => {
     // because the receiving end might not understand how to parse the ChatUser object.
     const userDetails = regroupUserDetails(userInfo);
 
-    socket.emit('shareMsg', channel, {
+    socket.emit('shareMsg', channel.substring(1), {
       user,
       message,
       privMsg,
