@@ -43,6 +43,7 @@ async function main() {
         onRefresh: async ({ accessToken, refreshToken, expiryDate }) => {
           const expiryTimestamp = expiryDate === null ? null : expiryDate.getTime();
           await TokensService.updateTokens(
+            'default',
             accessToken,
             refreshToken,
             expiryTimestamp,

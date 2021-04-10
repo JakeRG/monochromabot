@@ -8,12 +8,25 @@ const initTokenData = () => {
     accessToken,
     refreshToken,
     expiryTimestamp: 0,
+    tokenInfo: 'default',
   };
 };
 
+// Specific tokens for users who granted access (scope requirements)
+const getTokensByUser = async (user) => {
+  try {
+    const tokens = await Tokens.findOne({ tokenInfo: user }).exec();
+    return tokens;
+  } catch (e) {
+    logger.error(e);
+    return null;
+  }
+};
+
+// Default tokens used for basic functionality
 const readTokens = async () => {
   try {
-    let tokens = await Tokens.findOne({}).exec();
+    let tokens = await Tokens.findOne({ tokenInfo: 'default' }).exec();
     if (!tokens) {
       tokens = await Tokens.create(initTokenData());
     }
@@ -24,10 +37,15 @@ const readTokens = async () => {
   }
 };
 
-const updateTokens = async (accessToken, refreshToken, expiryTimestamp) => {
+const updateTokens = async (tokenInfo, accessToken, refreshToken, expiryTimestamp) => {
   // Get the document to update
   try {
-    const tokens = await readTokens();
+    let tokens;
+    if (tokenInfo === 'default') {
+      tokens = await readTokens();
+    } else {
+      tokens = await getTokensByUser(tokenInfo);
+    }
     if (!tokens) {
       // If there is no document to update, we have a problem!
       throw new Error('No tokens object found!');
@@ -52,6 +70,7 @@ const updateTokens = async (accessToken, refreshToken, expiryTimestamp) => {
 
 module.exports = {
   initTokenData,
+  getTokensByUser,
   readTokens,
   updateTokens,
 };

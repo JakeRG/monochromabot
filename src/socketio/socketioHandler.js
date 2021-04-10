@@ -67,7 +67,6 @@ const regroupUserDetails = (userInfo) => {
  * @param {PrivateMessage} privMsg PrivateMessage object containing more information
  */
 const shareMessage = (channel, user, message, privMsg) => {
-  // console.log(JSON.stringify(privMsg));
   /*
   console.log(JSON.stringify(privMsg.channelId));
   console.log(JSON.stringify(privMsg.userInfo.color));

@@ -10,6 +10,12 @@ const tokensSchema = {
   expiryTimestamp: {
     type: Number,
   },
+  tokenInfo: {
+    type: String,
+  },
+  scope: {
+    type: [String],
+  },
 };
 
 const TokensModel = mongoDB.model('tokens', tokensSchema);
