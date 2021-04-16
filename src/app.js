@@ -10,11 +10,16 @@ const SocketIOHandler = require('./socketio/socketioHandler');
 const ChannelService = require('./mongo/channels/channelService');
 const MessageService = require('./mongo/messages/messageService');
 const TokensService = require('./mongo/tokens/tokensService');
+const TwitchApiService = require('./twitch/twitchApiService');
 const chatCommands = require('./chatCommands');
+
 const logger = require('./logger');
 
 // CONSTANTS
 const PORT = process.env.PORT || 3001;
+
+// List of PubSub Clients for listening to events in channels
+const pubSubClients = [];
 
 // Set up Node Express so we bind the port so Heroku won't cry
 const app = express();
@@ -63,6 +68,13 @@ async function main() {
 
     const joinedChannels = await ChannelService.joinedChannels();
     logger.info(`MonochromaBot launched. Joined channels: ${joinedChannels}`);
+
+    // Try to set up API connections for all joined channels
+    const promises = [];
+    joinedChannels.forEach((channel) => promises
+      .push(TwitchApiService.getPubSubClientForChannel(channel)));
+    const createdPubSubClients = (await Promise.all(promises)).filter((x) => x);
+    pubSubClients.push(...createdPubSubClients);
 
     /*
     // Example of how to dynamically join channels

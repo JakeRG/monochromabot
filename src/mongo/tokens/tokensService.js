@@ -15,7 +15,8 @@ const initTokenData = () => {
 // Specific tokens for users who granted access (scope requirements)
 const getTokensByUser = async (user) => {
   try {
-    const tokens = await Tokens.findOne({ tokenInfo: user }).exec();
+    const tokenInfo = user.toLowerCase();
+    const tokens = await Tokens.findOne({ tokenInfo }).exec();
     return tokens;
   } catch (e) {
     logger.error(e);
